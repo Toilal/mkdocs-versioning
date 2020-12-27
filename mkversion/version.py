@@ -116,6 +116,9 @@ def version(config, plugin_config):
     site_name = config['site_name']
     site_dir = config['site_dir']
     config_path = config['config_file_path']
+    version_selection_generated_name = plugin_config['version_selection_generated_name']
+    version_selection_page = plugin_config['version_selection_page']
+    base_nav = plugin_config.get('nav', [{'Home': version_selection_generated_name}])
 
     # read mkdocs.yml
     infile = open(config_path, 'r')
@@ -142,20 +145,18 @@ def version(config, plugin_config):
     # in order to fix issue #48 (https://github.com/zayd62/mkdocs-versioning/issues/48)
     # rename the original md files to have a "." so it is ignored when version selection page is built
     with hidden_documentation(config):
-        version_page_name = 'index.md'
         # build default version page
-        if plugin_config['version_selection_page'] is None:
-            path_of_version_md = os.path.join(config['docs_dir'], version_page_name)
+        if version_selection_page is None:
+            path_of_version_md = os.path.join(config['docs_dir'], version_selection_generated_name)
             build_default_version_page(path_of_version_md)
         else:
             # build custom version page
-            custom_version_path = pathlib.Path(plugin_config['version_selection_page'])
+            custom_version_path = pathlib.Path(version_selection_page)
             unhide_md(custom_version_path.with_name('.' + custom_version_path.name))
-            custom_version_path.replace(custom_version_path.with_name('index.md'))
+            custom_version_path.replace(custom_version_path.with_name(version_selection_generated_name))
         # take list of built docs and create nav item
         nav = []
-        homedict = {'Home': version_page_name}
-        nav.append(homedict)
+        nav.extend(base_nav)
 
         # building paths for each version
         for i in built_docs_list:

@@ -15,7 +15,9 @@ class Entry(BasePlugin):
         ('version', config_options.Type(str)),
         ('exclude_from_nav', config_options.Type(list, default=[])),
         ('allow_rebuild', config_options.Type(bool, default=False)),
-        ('version_selection_page', config_options.File())
+        ('version_selection_generated_name', config_options.Type(str, default='index.md')),
+        ('version_selection_page', config_options.File()),
+        ('nav', config_options.Nav())
     )
 
     def on_config(self, config: Dict[str, str], **kwargs) -> Dict[str, str]:

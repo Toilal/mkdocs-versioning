@@ -37,7 +37,7 @@ This is a **OPTIONAL** option. This lets the plugin know if there is a custom ve
 
 ## Option: *`allow_rebuild`*
 
-This is a **OPTIONAL** option. This lets the plugin know if building a version that already exists in output directory is allowed.
+This is a **OPTIONAL** option. This lets the plugin know if building a version that already exists in output directory is allowed. (Default: `False`)
 
 ???+ example "Example *`mkdocs.yml`*"
     ```yaml
@@ -45,3 +45,28 @@ This is a **OPTIONAL** option. This lets the plugin know if building a version t
     - mkdocs-versioning:
         allow_rebuild: True
     ```
+
+## Option: *`nav`*
+
+This is a **OPTIONAL** option. Nav to generate in the root *`docs`* directory. (Default: `{'Home': 'index.md'}`)
+
+???+ example "Example *`mkdocs.yml`*"
+```yaml
+plugins:
+- mkdocs-versioning:
+    nav: 
+      - Home: "index.md"
+      - Project: "project.md" 
+```
+
+## Option: *`version_selection_generated_name`*
+
+This is a **OPTIONAL** option. Customize generated name for version selection page. You should refer to this name inside 
+`nav ` option. (Default: `index.md`)
+
+???+ example "Example *`mkdocs.yml`*"
+```yaml
+plugins:
+- mkdocs-versioning:
+    version_selection_generated_name: "version-chooser.md"
+```
