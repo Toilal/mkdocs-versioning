@@ -6,6 +6,7 @@ import yaml
 from mkdocs import config as mkconfig
 from mkdocs.commands import build
 from typing import List, Dict
+from contextlib import contextmanager
 
 
 def clean_old_files(items_to_delete: List[str], built_docs_path: str, plugin_config: Dict[str, str]) -> None:
@@ -77,6 +78,17 @@ def unhide_md(path: str) -> None:
     path.replace(path.with_name(filename))
 
 
+@contextmanager
+def hidden_documentation(config: Dict[str, str]):
+    # Code to acquire resource, e.g.:
+    hide_documentation(config)
+    try:
+        yield
+    finally:
+        # Code to release resource, e.g.:
+        unhide_documentation(config)
+
+
 def build_default_version_page(path_of_version_md: str) -> None:
     """
     build the default version selection path
@@ -129,64 +141,61 @@ def version(config, plugin_config):
 
     # in order to fix issue #48 (https://github.com/zayd62/mkdocs-versioning/issues/48)
     # rename the original md files to have a "." so it is ignored when version selection page is built
-    hide_documentation(config)
-    version_page_name = 'index.md'
-    # build default version page
-    if plugin_config['version_selection_page'] is None:
-        path_of_version_md = os.path.join(config['docs_dir'], version_page_name)
-        build_default_version_page(path_of_version_md)
-    else:
-        # build custom version page
-        custom_version_path = pathlib.Path(plugin_config['version_selection_page'])
-        unhide_md(custom_version_path.with_name('.' + custom_version_path.name))
-        custom_version_path.replace(custom_version_path.with_name('index.md'))
-    # take list of built docs and create nav item
-    nav = []
-    homedict = {'Home': version_page_name}
-    nav.append(homedict)
+    with hidden_documentation(config):
+        version_page_name = 'index.md'
+        # build default version page
+        if plugin_config['version_selection_page'] is None:
+            path_of_version_md = os.path.join(config['docs_dir'], version_page_name)
+            build_default_version_page(path_of_version_md)
+        else:
+            # build custom version page
+            custom_version_path = pathlib.Path(plugin_config['version_selection_page'])
+            unhide_md(custom_version_path.with_name('.' + custom_version_path.name))
+            custom_version_path.replace(custom_version_path.with_name('index.md'))
+        # take list of built docs and create nav item
+        nav = []
+        homedict = {'Home': version_page_name}
+        nav.append(homedict)
 
-    # building paths for each version
-    for i in built_docs_list:
-        nav_item = {}
-        nav_item[i] = i + '/'
-        nav.append(nav_item)
+        # building paths for each version
+        for i in built_docs_list:
+            nav_item = {}
+            nav_item[i] = i + '/'
+            nav.append(nav_item)
 
-    # remove mkdocs versioning plugin from version config
-    for j in inyaml['plugins']:
-        if 'mkdocs-versioning' in j:
-            inyaml['plugins'].remove(j)
+        # remove mkdocs versioning plugin from version config
+        for j in inyaml['plugins']:
+            if 'mkdocs-versioning' in j:
+                inyaml['plugins'].remove(j)
 
-    # if there are no plugins left installed, remove the plugin from version config otherwise errors will occur
-    if len(inyaml['plugins']) <= 0:
-        del inyaml['plugins']
+        # if there are no plugins left installed, remove the plugin from version config otherwise errors will occur
+        if len(inyaml['plugins']) <= 0:
+            del inyaml['plugins']
 
-    # replace the nav
-    inyaml['nav'] = nav
+        # replace the nav
+        inyaml['nav'] = nav
 
-    # replace site_dir
-    inyaml['site_dir'] = built_docs_path
+        # replace site_dir
+        inyaml['site_dir'] = built_docs_path
 
-    # replace site_name
-    inyaml['site_name'] = site_name
+        # replace site_name
+        inyaml['site_name'] = site_name
 
-    # open config file for writing
-    with open('mkdocs.version.yml', 'w') as version_config:
-        yaml.dump(inyaml, version_config, default_flow_style=False)
+        # open config file for writing
+        with open('mkdocs.version.yml', 'w') as version_config:
+            yaml.dump(inyaml, version_config, default_flow_style=False)
 
-    # perform version build
-    with open(os.path.realpath(version_config.name), 'rb') as cnfg_file:
-        built_config = mkconfig.load_config(cnfg_file)
-        build.build(built_config, dirty=True)
+        # perform version build
+        with open(os.path.realpath(version_config.name), 'rb') as cnfg_file:
+            built_config = mkconfig.load_config(cnfg_file)
+            build.build(built_config, dirty=True)
 
-    # delete version config
-    os.remove(os.path.realpath(version_config.name))
+        # delete version config
+        os.remove(os.path.realpath(version_config.name))
 
-    # rename the custom version selection page if specified otherwise delete the version selection page
-    if plugin_config['version_selection_page'] is not None:
-        pth = pathlib.Path(os.path.join(config['docs_dir'], 'index.md'))
-        pth.replace(custom_version_path)
-    else:
-        os.remove(os.path.join(config['docs_dir'], 'index.md'))
-
-    # unhide original documentation
-    unhide_documentation(config)
+        # rename the custom version selection page if specified otherwise delete the version selection page
+        if plugin_config['version_selection_page'] is not None:
+            pth = pathlib.Path(os.path.join(config['docs_dir'], 'index.md'))
+            pth.replace(custom_version_path)
+        else:
+            os.remove(os.path.join(config['docs_dir'], 'index.md'))
