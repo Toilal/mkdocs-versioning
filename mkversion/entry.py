@@ -14,6 +14,7 @@ class Entry(BasePlugin):
     config_scheme = (
         ('version', config_options.Type(str)),
         ('exclude_from_nav', config_options.Type(list, default=[])),
+        ('allow_rebuild', config_options.Type(bool, default=False)),
         ('version_selection_page', config_options.File())
     )
 
@@ -56,10 +57,16 @@ class Entry(BasePlugin):
         # check if docs for specified version in config already exists
         # if true, program should exit as docs that already exist should not have to be rebuilt
         if os.path.isdir(new_dir):
+            allow_rebuild = self.config.data['allow_rebuild']
+
             print('A documentation with the version', version_num, 'already exists.')
-            print('You should not need to rebuild a version of the documentation that is already built')
-            print('if you would like to rebuild, you need to delete the folder:', version_num, '. Exiting...')
-            sys.exit(1)
+            if allow_rebuild:
+                print('It will be rebuilt.')
+            else:
+                print('You should not need to rebuild a version of the documentation that is already built')
+                print('If you would like to rebuild, you need to delete the folder:', version_num,
+                      ' or add "allow_rebuild: True". Exiting...')
+                sys.exit(1)
 
         # if a custom version page is defined in the config, then hide it for the initial build
         if self.config['version_selection_page'] is not None:

@@ -34,3 +34,14 @@ This is a **OPTIONAL** option. This lets the plugin know if there is a custom ve
     - mkdocs-versioning:
         version_selection_page: "version_page.md"
     ```
+
+## Option: *`allow_rebuild`*
+
+This is a **OPTIONAL** option. This lets the plugin know if building a version that already exists in output directory is allowed.
+
+???+ example "Example *`mkdocs.yml`*"
+    ```yaml
+    plugins:
+    - mkdocs-versioning:
+        allow_rebuild: True
+    ```
